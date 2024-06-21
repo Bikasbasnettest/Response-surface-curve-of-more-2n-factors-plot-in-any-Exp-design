@@ -1,0 +1,80 @@
+bIKU<-read.csv("E:/Response surface plot in R/RSp.csv", header = TRUE)
+attach(bIKU)
+bIKU
+print(bIKU)
+library(ggplot2)
+library(rsm)
+colnames(bIKU)
+model <- rsm(Yield..Y. ~ SO(Auxin.in.ppm, Ethylene.in.ppm), data = bIKU)
+summary(model)
+######for making the 3D diagram
+par(mfrow = c(1, 1)) # reset the plotting area
+persp(model, ~ Auxin.in.ppm + Ethylene.in.ppm, zlab = "Yield", main = "Response Surface Plot",
+      ticktype = "detailed", col = "lightblue", theta = 30, phi = 20)
+######For making the 2 d DIAGRAM
+contour(model, ~ Auxin.in.ppm + Ethylene.in.ppm, image = TRUE, main = "Contour Plot")
+##########################
+
+
+# 3D Perspective Plot with colors
+par(mfrow = c(1, 1)) # reset the plotting area
+persp(model, ~ Auxin.in.ppm + Ethylene.in.ppm, zlab = "Yield", main = "Response Surface Plot",
+      ticktype = "detailed", col = terrain.colors(50), theta = 30, phi = 20)
+###################################################
+library(fields)
+library(plot3D)
+grid <- expand.grid(
+  Auxin.in.ppm = seq(min(bIKU$Auxin.in.ppm), max(bIKU$Auxin.in.ppm), length.out = 100),
+  Ethylene.in.ppm = seq(min(bIKU$Ethylene.in.ppm), max(bIKU$Ethylene.in.ppm), length.out = 100)
+)
+grid$Yield <- predict(model, newdata = grid)
+
+# Prepare data for the persp function
+x <- seq(min(grid$Auxin.in.ppm), max(grid$Auxin.in.ppm), length.out = 100)
+y <- seq(min(grid$Ethylene.in.ppm), max(grid$Ethylene.in.ppm), length.out = 100)
+z <- matrix(grid$Yield, nrow = 100, ncol = 100)
+
+# Define color scale
+color_scale <- terrain.colors(50)
+
+# Plot the 3D perspective plot
+par(mfrow = c(1, 1)) # reset the plotting area
+persp(x, y, z, xlab = "Auxin (ppm)", ylab = "Ethylene (ppm)", zlab = "Yield", main = "Response Surface Plot",
+      ticktype = "detailed", col = color_scale[cut(z, breaks = 50)], theta = 30, phi = 20)
+
+# Add a color scale legend
+image.plot(legend.only = TRUE, zlim = range(z), col = color_scale)
+##################alternative code 
+# Define the grid for prediction
+grid <- expand.grid(
+  Auxin.in.ppm = seq(min(bIKU$Auxin.in.ppm), max(bIKU$Auxin.in.ppm), length.out = 100),
+  Ethylene.in.ppm = seq(min(bIKU$Ethylene.in.ppm), max(bIKU$Ethylene.in.ppm), length.out = 100)
+)
+grid$Yield <- predict(model, newdata = grid)
+
+# Prepare data for the persp3D function
+x <- seq(min(grid$Auxin.in.ppm), max(grid$Auxin.in.ppm), length.out = 100)
+y <- seq(min(grid$Ethylene.in.ppm), max(grid$Ethylene.in.ppm), length.out = 100)
+z <- matrix(grid$Yield, nrow = 100, ncol = 100)
+
+# Define color scale
+color_scale <- terrain.colors(50)
+
+# Plot the 3D perspective plot with grid
+par(mfrow = c(1, 1)) # reset the plotting area
+persp3D(x, y, z, xlab = "Auxin (ppm)", ylab = "Ethylene (ppm)", zlab = "Yield", main = "Response Surface Plot",
+        colvar = z, col = color_scale, ticktype = "detailed", theta = 30, phi = 20, bty = "b2", colkey = list(length = 0.5, width = 0.5))
+
+# #######To incresed the size of the plot 
+
+dev.new(width = 10, height = 7)
+
+# ########Plot the 3D perspective plot with grid
+par(mfrow = c(1, 1)) # reset the plotting area
+persp3D(x, y, z, xlab = "Auxin (ppm)", ylab = "Ethylene (ppm)", zlab = "Yield", main = "Response Surface Plot",
+        colvar = z, col = color_scale, ticktype = "detailed", theta = 30, phi = 20, bty = "b2", colkey = list(length = 0.5, width = 0.5))
+####to save the file 
+png("response_surface_plot.png", width = 800, height = 600, res = 1000)
+persp3D(x, y, z, xlab = "Auxin (ppm)", ylab = "Ethylene (ppm)", zlab = "Yield", main = "Response Surface Plot",
+        colvar = z, col = color_scale, ticktype = "detailed", theta = 30, phi = 20, bty = "b2", colkey = list(length = 0.5, width = 0.5))
+dev.off()
